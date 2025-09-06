@@ -7,7 +7,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage, HumanMessage, SystemMessage
 
-from database import list_tables, get_table_schema, run_sql_query
+from utils.database import list_tables, get_table_schema, run_sql_query
 
 load_dotenv()
 

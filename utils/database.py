@@ -1,7 +1,7 @@
 import sqlite3
 import json
 
-DB_NAME = "company.db"
+DB_NAME = "database/company.db"
 
 def list_tables() -> list[str]:
     """Lists all tables in the database."""

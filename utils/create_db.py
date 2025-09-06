@@ -1,5 +1,5 @@
 import sqlite3
-conn = sqlite3.connect('company.db')
+conn = sqlite3.connect('database/company.db')
 cursor = conn.cursor()
 cursor.execute("DROP TABLE IF EXISTS employee_projects;")
 cursor.execute("DROP TABLE IF EXISTS employees;")
