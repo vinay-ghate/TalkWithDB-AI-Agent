@@ -16,6 +16,8 @@ The agent uses **Google Gemini (via LangChain)** along with custom database tool
 - Built with **Streamlit + LangChain + Gemini API**.
 - Modular tools for `get_tables`, `get_schema`, and `run_query`.
 
+![Screenshot of chat](https://i.ibb.co/YFRnRyns/image.png)
+
 ---
 
 ## 📂 Project Structure
@@ -130,4 +132,5 @@ The agent will:
 ## 📜 License
 
 MIT License – feel free to use and adapt.
+
 
