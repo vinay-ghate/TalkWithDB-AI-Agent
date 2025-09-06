@@ -23,12 +23,12 @@ The agent uses **Google Gemini (via LangChain)** along with custom database tool
 ## 📂 Project Structure
 ````
 .
-├── app.py              # Main Streamlit app
-├── database.py         # Database utility functions
-├── company.db          # SQLite3 database
-├── pyproject.toml      # uv-managed dependencies
-├── uv.lock             # Lockfile for reproducibility
-└── README.md           # Project documentation
+├── main.py                    # Main Streamlit app
+├── utils/database.py          # Database utility functions
+├── database/company.db        # SQLite3 database
+├── pyproject.toml             # uv-managed dependencies
+├── uv.lock                    # Lockfile for reproducibility
+└── README.md                  # Project documentation
 
 ````
 
@@ -132,5 +132,6 @@ The agent will:
 ## 📜 License
 
 MIT License – feel free to use and adapt.
+
 
 
