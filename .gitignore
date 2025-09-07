@@ -4,3 +4,4 @@ _pycache__
 *.pyc
 .python-version
 uv.lock
+main.log

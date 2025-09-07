@@ -8,17 +8,26 @@ from langchain_core.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage, HumanMessage, SystemMessage
 
 from utils.database import list_tables, get_table_schema, run_sql_query
+import logging
 
+logging.basicConfig(filename="main.log",
+                    format='%(asctime)s %(message)s',
+                    filemode='w')
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 load_dotenv()
 
 @tool
 def get_tables() -> list[str]:
     """Use this tool to get a list of all table names in the database."""
+    logger.info(f"get_tables")
     return list_tables()
 
 @tool
 def get_schema(table_name: str) -> str:
     """Use this tool to get the schema (column names and types) for a specific table."""
+    logger.info(f"get_schema : {table_name}")
     return get_table_schema(table_name)
 
 @tool
@@ -28,6 +37,7 @@ def run_query(query: str) -> str:
     Only SELECT statements are allowed.
     Returns the query result as a JSON string.
     """
+    logger.info(f"run_query : {query}")
     return run_sql_query(query)
 
 st.set_page_config(page_title="Dynamic AI Database Agent", page_icon="🧠")
@@ -41,6 +51,7 @@ except Exception as e:
     st.error(
         f"Error initializing the model: {e}. Please ensure your GOOGLE_API_KEY is set."
     )
+    logger.error(f"Error initializing the model: {e}")
     st.stop()
 
 if "messages" not in st.session_state:
@@ -75,6 +86,7 @@ if prompt := st.chat_input("e.g., Who is the lead engineer?"):
             )
         ]
         for msg in st.session_state.messages:
+            logger.info(f"Message : {msg}")
             if msg["role"] == "user":
                 history_for_model.append(HumanMessage(content=msg["content"]))
             elif msg["role"] == "assistant":

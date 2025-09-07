@@ -80,7 +80,7 @@ GOOGLE_API_KEY=your_google_api_key_here
 ### 4️⃣ Run the Streamlit app
 
 ```bash
-uv run streamlit run app.py
+uv run streamlit run main.py
 ```
 
 This will launch the app in your browser at:
