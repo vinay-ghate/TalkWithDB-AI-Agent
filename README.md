@@ -131,7 +131,6 @@ The agent will:
 
 ## 📜 License
 
-MIT License – feel free to use and adapt.
-
+MIT License – feel free to use and adapt..
 
 
