@@ -1,141 +1,92 @@
+# 🧠 TalkWithDB - AI Database Agent
 
-# 🧠 TalkWithDB -  AI Database Agent
+[](https://talkwithdb.streamlit.app/)
 
-###  [Preview Link](https://talkwithdb.streamlit.app/) : Here you can upload your own .db file and add you own gemini key.
+Chat with any SQLite database using natural language. No setup required—just upload your `.db` file, add your Gemini API key, and start asking questions.
 
-This project is an **AI-powered Streamlit app** that connects to a **SQLite3 database (`company.db`)** and allows you to ask natural language questions about its data.  
-The agent uses **Google Gemini (via LangChain)** along with custom database tools to automatically:
-1. Inspect available tables.
-2. Fetch table schemas.
-3. Generate SQL queries.
-4. Run the queries and return results.
+### 🔗 **[Try the Live Demo Here\!](https://talkwithdb.streamlit.app/)**
 
----
+This project is an AI-powered agent that lets you have a conversation with your data. The agent uses **Google Gemini** and **LangChain** to understand your questions, inspect the database you provide, write SQL queries, and give you back answers in plain English.
 
-## 🚀 Features
-- Natural language Q&A over any connected `.db` file.
-- Automatic schema inspection before query generation.
-- Built with **Streamlit + LangChain + Gemini API**.
-- Modular tools for `get_tables`, `get_schema`, and `run_query`.
+-----
 
-![Screenshot of chat](https://github.com/user-attachments/assets/4364b7d9-2a5c-4c7c-9f7d-b9ff8ceef3fb)
+## 🚀 Key Features
 
----
+  - **Bring Your Own Database**: Upload your own SQLite `.db` file directly in the browser.
+  - **User-Provided API Key**: Securely use your own Google Gemini API key.
+  - **Live SQL Query Display**: See the SQL queries the AI generates in real-time in the sidebar.
+  - **Natural Language Q\&A**: Ask complex questions without writing a single line of SQL.
+  - **Automatic Schema Detection**: The agent automatically inspects table structures to write accurate queries.
+  - **Built with**: **Streamlit** + **LangChain** + **Google Gemini**.
 
-## 📂 Project Structure
-````
-.
-├── main.py                    # Main Streamlit app
-├── utils/database.py          # Database utility functions
-├── database/company.db        # SQLite3 database
-├── pyproject.toml             # uv-managed dependencies
-├── uv.lock                    # Lockfile for reproducibility
-└── README.md                  # Project documentation
+-----
 
-````
+## 💡 How to Use the Live App
 
----
+Get started in seconds with the hosted Streamlit application.
 
-## 🔧 Setup Instructions
+1.  **Open the App**: Navigate to **[TalkWithDB on Streamlit](https://talkwithdb.streamlit.app/)**.
+2.  **Configure**: In the sidebar, enter your **Google Gemini API Key**.
+3.  **Upload**: Upload your SQLite (`.db`) database file.
+4.  **Chat**: Once configured, the chat window will activate. Start asking questions\!
 
-### 1️⃣ Clone the repository
+**Example Questions:**
+
+  * *"Show me all employees in the Engineering department."*
+  * *"What are the salaries of managers?"*
+  * *"How many users signed up last week?"*
+
+-----
+
+## 🔧 Local Development Setup
+
+Want to run the app locally or contribute? Follow these steps.
+
+### 1️⃣ Clone the Repository
+
 ```bash
 git clone https://github.com/your-username/TalkWithDB-AI-Agent.git
 cd TalkWithDB-AI-Agent
-````
+```
 
-### 2️⃣ Install dependencies using [uv](https://github.com/astral-sh/uv)
+### 2️⃣ Install Dependencies using [uv](https://github.com/astral-sh/uv)
 
-If not installed, install `uv`:
+This project uses `uv` for fast dependency management. First, install `uv`:
 
 ```bash
 pip install uv
 ```
 
-Install project dependencies from `pyproject.toml`:
+Then, sync the project dependencies:
 
 ```bash
 uv sync
 ```
 
-Or, if you want to install from `requirements.txt`:
+### 3️⃣ Run the Streamlit App
 
 ```bash
-uv pip install -r requirements.txt
+uv run streamlit run app.py
 ```
 
----
+This will launch the app in your browser, typically at `http://localhost:8501`.
 
-### 3️⃣ Configure environment variables
+-----
 
-Create a `.env` file in the project root:
-
-```env
-GOOGLE_API_KEY=your_google_api_key_here
-```
-
-> 🔑 You need a valid Google Gemini API key.
-> Get one from [Google AI Studio](https://aistudio.google.com/).
-
----
-
-### 4️⃣ Run the Streamlit app
-
-```bash
-uv run streamlit run main.py
-```
-
-This will launch the app in your browser at:
+## 📂 Project Structure
 
 ```
-http://localhost:8501
+.
+├── app.py                 # The main Streamlit application
+├── utils/database.py      # Database utility functions (list_tables, get_schema, etc.)
+├── temp/                  # Directory for temporarily storing uploaded .db files
+├── pyproject.toml         # uv-managed project dependencies
+├── uv.lock                # Lockfile for reproducible builds
+└── README.md              # You are here!
 ```
 
----
-
-## 🗄️ Database
-
-The app connects to `company.db` (SQLite3).
-Make sure the file exists in the root directory.
-You can swap it with your own `.db` file — the AI will automatically detect new tables and schemas.
-
----
-
-## ✅ Example Usage
-
-1. Start the app.
-2. Ask questions like:
-
-   * *"Show me all employees in the Engineering department."*
-   * *"What are the salaries of managers?"*
-   * *"List all tables in the database."*
-
-The agent will:
-
-* Inspect available tables.
-* Get schema details.
-* Construct and run a safe SQL `SELECT` query.
-* Return the results in a readable format.
-
----
-
-## 🛠️ Development Notes
-
-* Dependencies are tracked in `pyproject.toml` via `uv`.
-* Use `uv export --format requirements.txt --no-hashes -o requirements.txt` if you need a `requirements.txt`.
-* Dev-only packages can be added with:
-
-  ```bash
-  uv add --dev pytest black
-  ```
-
----
+-----
 
 ## 📜 License
 
-`
-MIT License – feel free to use and adapt.
-`
-
-Temp
-
+This project is licensed under the **MIT License**.
