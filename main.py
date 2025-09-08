@@ -1,6 +1,5 @@
-# app.py
 import streamlit as st
-import json
+import os
 from dotenv import load_dotenv
 
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -10,119 +9,133 @@ from langchain_core.messages import AIMessage, ToolMessage, HumanMessage, System
 from utils.database import list_tables, get_table_schema, run_sql_query
 import logging
 
-logging.basicConfig(filename="main.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
-
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+
 load_dotenv()
 
-@tool
-def get_tables() -> list[str]:
-    """Use this tool to get a list of all table names in the database."""
-    logger.info(f"get_tables")
-    return list_tables()
+st.set_page_config(page_title="Dynamic AI Database Agent", page_icon="🧠", layout="wide")
 
-@tool
-def get_schema(table_name: str) -> str:
-    """Use this tool to get the schema (column names and types) for a specific table."""
-    logger.info(f"get_schema : {table_name}")
-    return get_table_schema(table_name)
+with st.sidebar:
+    st.title("⚙️ Configuration")
+    
+    api_key = st.text_input("Enter your Google Gemini API Key", type="password", key="api_key_input")
+    uploaded_file = st.file_uploader("Upload your SQLite Database (.db)", type=["db"], key="db_uploader")
 
-@tool
-def run_query(query: str) -> str:
-    """
-    Use this tool to execute a read-only SQL SELECT query on the database.
-    Only SELECT statements are allowed.
-    Returns the query result as a JSON string.
-    """
-    logger.info(f"run_query : {query}")
-    return run_sql_query(query)
+    st.markdown("---")
+    
+    st.title("📝 SQL History")
+    query_display_area = st.container()
 
-st.set_page_config(page_title="Dynamic AI Database Agent", page_icon="🧠")
-st.title("🧠 Dynamic AI Database Agent")
-st.caption("I can answer questions about any connected .db file.")
-
-try:
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite")
-    llm_with_tools = llm.bind_tools([get_tables, get_schema, run_query])
-except Exception as e:
-    st.error(
-        f"Error initializing the model: {e}. Please ensure your GOOGLE_API_KEY is set."
-    )
-    logger.error(f"Error initializing the model: {e}")
-    st.stop()
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {
-            "role": "assistant",
-            "content": "Hello! I can answer questions about the connected database. What would you like to know?",
-        }
-    ]
+    st.session_state.messages = [{"role": "assistant", "content": "Hello! Configure me in the sidebar to get started."}]
+if "db_path" not in st.session_state:
+    st.session_state.db_path = None
+if "sql_queries" not in st.session_state:
+    st.session_state.sql_queries = []
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-if prompt := st.chat_input("e.g., Who is the lead engineer?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
 
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
+if uploaded_file and api_key:
+    temp_dir = "temp"
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+    
+    db_path = os.path.join(temp_dir, uploaded_file.name)
+    with open(db_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    
+    st.session_state.db_path = db_path
+    
+    @tool
+    def get_tables() -> list[str]:
+        """Use this tool to get a list of all table names in the database."""
+        logger.info(f"Tool: get_tables called")
+        return list_tables(st.session_state.db_path)
 
-        history_for_model = [
-            SystemMessage(
-                content="""
-                You are a powerful AI database assistant. Your goal is to answer user questions by querying the database.
-                You must follow this sequence:
-                1. First, use the `get_tables` tool to see what tables are available.
-                2. Next, use the `get_schema` tool to understand the columns of the relevant tables.
-                3. Finally, construct a precise SQL `SELECT` query and execute it using the `run_query` tool to get the answer.
-                Do not make assumptions about the schema. Always inspect it first.
-            """
-            )
-        ]
-        for msg in st.session_state.messages:
-            logger.info(f"Message : {msg}")
-            if msg["role"] == "user":
-                history_for_model.append(HumanMessage(content=msg["content"]))
-            elif msg["role"] == "assistant":
-                # This needs to handle both simple text and AIMessages with tool calls
-                if isinstance(msg.get("content"), str):
-                    history_for_model.append(AIMessage(content=msg["content"]))
-                elif msg.get("tool_calls"):
-                    history_for_model.append(AIMessage(tool_calls=msg["tool_calls"]))
-        while True:
-            ai_msg = llm_with_tools.invoke(history_for_model)
+    @tool
+    def get_schema(table_name: str) -> str:
+        """Use this tool to get the schema (column names and types) for a specific table."""
+        logger.info(f"Tool: get_schema called for table: {table_name}")
+        return get_table_schema(st.session_state.db_path, table_name)
 
-            if not ai_msg.tool_calls:
-                response_content = ai_msg.content
-                break 
+    @tool
+    def run_query(query: str) -> str:
+        """
+        Use this tool to execute a read-only SQL SELECT query on the database.
+        Returns the query result as a JSON string.
+        """
+        logger.info(f"Tool: run_query called with query: {query}")
+        st.session_state.sql_queries.append(query)
+        return run_sql_query(st.session_state.db_path, query)
 
-            history_for_model.append(ai_msg)
+    try:
+        llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", google_api_key=api_key)
+        llm_with_tools = llm.bind_tools([get_tables, get_schema, run_query])
+    except Exception as e:
+        st.error(f"Error initializing the model: {e}")
+        st.stop()
+    
+    if prompt := st.chat_input("Ask a question about your database..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-            for tool_call in ai_msg.tool_calls:
-                tool_name = tool_call["name"]
-                tool_args = tool_call["args"]
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            with st.spinner("🧠 Thinking..."):
+                history_for_model = [
+                    SystemMessage(content="""
+                        You are a powerful AI database assistant. Your goal is to answer user questions by querying the database.
+                        You must follow this sequence:
+                        1. First, use the `get_tables` tool to see what tables are available.
+                        2. Next, use the `get_schema` tool to understand the columns of the relevant tables.
+                        3. Finally, construct a precise SQL `SELECT` query and execute it using the `run_query` tool to get the answer.
+                        Do not make assumptions about the schema. Always inspect it first.
+                        Provide a final, user-friendly answer based on the query results.
+                    """)
+                ]
+                for msg in st.session_state.messages:
+                    if msg["role"] == "user":
+                        history_for_model.append(HumanMessage(content=msg["content"]))
+                    elif msg["role"] == "assistant":
+                        if isinstance(msg.get("content"), str):
+                             history_for_model.append(AIMessage(content=msg["content"]))
 
-                if tool_name == "get_tables":
-                    tool_output = get_tables.invoke(tool_args)
-                elif tool_name == "get_schema":
-                    tool_output = get_schema.invoke(tool_args)
-                elif tool_name == "run_query":
-                    tool_output = run_query.invoke(tool_args)
-                else:
-                    tool_output = "Error: Unknown tool."
+                while True:
+                    ai_msg = llm_with_tools.invoke(history_for_model)
 
-                tool_message = ToolMessage(
-                    content=str(tool_output), tool_call_id=tool_call["id"]
-                )
-                history_for_model.append(tool_message)
+                    if not ai_msg.tool_calls:
+                        response_content = ai_msg.content
+                        break 
+                    
+                    history_for_model.append(ai_msg)
+                    
+                    for tool_call in ai_msg.tool_calls:
+                        tool_map = {"get_tables": get_tables, "get_schema": get_schema, "run_query": run_query}
+                        tool_name = tool_call["name"]
+                        
+                        if tool_name in tool_map:
+                            selected_tool = tool_map[tool_name]
+                            tool_output = selected_tool.invoke(tool_call["args"])
+                        else:
+                            tool_output = f"Error: Unknown tool {tool_name}."
 
-        message_placeholder.markdown(response_content)
-        st.session_state.messages.append(
-            {"role": "assistant", "content": response_content}
-        )
+                        history_for_model.append(ToolMessage(content=str(tool_output), tool_call_id=tool_call["id"]))
+
+            message_placeholder.markdown(response_content)
+            st.session_state.messages.append({"role": "assistant", "content": response_content})
+
+else:
+    st.info("⬆️ Please upload a database file and enter your API key to activate the chat.")
+
+with query_display_area:
+    if st.session_state.sql_queries:
+        for i, q in enumerate(reversed(st.session_state.sql_queries)):
+            with st.expander(f"Query {len(st.session_state.sql_queries) - i}", expanded=False):
+                st.code(q, language="sql")
+    else:
+        st.write("No queries have been run yet.")
