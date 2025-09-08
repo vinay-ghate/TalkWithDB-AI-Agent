@@ -1,6 +1,8 @@
 
 # 🧠 TalkWithDB -  AI Database Agent
 
+###  [Preview Link](https://talkwithdb.streamlit.app/) : Here you can upload your own .db file and add you own gemini key.
+
 This project is an **AI-powered Streamlit app** that connects to a **SQLite3 database (`company.db`)** and allows you to ask natural language questions about its data.  
 The agent uses **Google Gemini (via LangChain)** along with custom database tools to automatically:
 1. Inspect available tables.
@@ -16,7 +18,7 @@ The agent uses **Google Gemini (via LangChain)** along with custom database tool
 - Built with **Streamlit + LangChain + Gemini API**.
 - Modular tools for `get_tables`, `get_schema`, and `run_query`.
 
-![Screenshot of chat](https://i.ibb.co/YFRnRyns/image.png)
+![Screenshot of chat](https://github.com/user-attachments/assets/4364b7d9-2a5c-4c7c-9f7d-b9ff8ceef3fb)
 
 ---
 
